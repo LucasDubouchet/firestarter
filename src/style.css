@@ -1,0 +1,29 @@
+* {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+button {
+  position: absolute;
+  display: block;
+  z-index: 99;
+  left: 75%;
+  top: 75%;
+}
+
+button[id="reset"] {
+  position: absolute;
+  display: block;
+  z-index: 99;
+  left: 75%;
+  top: 80%;
+  }
+
