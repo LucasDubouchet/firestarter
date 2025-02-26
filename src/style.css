@@ -27,3 +27,12 @@ button[id="reset"] {
   top: 80%;
   }
 
+  button[id="auto-mode"] {
+    position: absolute;
+    display: block;
+    z-index: 99;
+    left: 75%;
+    top: 85%;
+    }
+  
+

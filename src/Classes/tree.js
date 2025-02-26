@@ -25,15 +25,15 @@ class Tree {
         const plane = new THREE.Mesh( geometry, material );
         scene.add( plane );
         this.mesh = plane;
-        this.mesh.position.x = (this.x * CONSTANTS.SIZE_MESH) + 0.1 * this.x;
-        this.mesh.position.y = (this.y * CONSTANTS.SIZE_MESH) + 0.1 * this.y;
+        this.mesh.position.x = (this.x * CONSTANTS.SIZE_MESH) + CONSTANTS.MESH_SPACNG * this.x;
+        this.mesh.position.y = (this.y * CONSTANTS.SIZE_MESH) + CONSTANTS.MESH_SPACNG * this.y;
     }
 
     setState(state){
         this.state = state;
         // reset mesh position
-        this.mesh.position.x = (this.x * CONSTANTS.SIZE_MESH) + 0.1 * this.x;
-        this.mesh.position.y = (this.y * CONSTANTS.SIZE_MESH) + 0.1 * this.y;
+        this.mesh.position.x = (this.x * CONSTANTS.SIZE_MESH) + CONSTANTS.MESH_SPACNG * this.x;
+        this.mesh.position.y = (this.y * CONSTANTS.SIZE_MESH) + CONSTANTS.MESH_SPACNG * this.y;
         switch (this.state) {
             case CONSTANTS.STATES.SAFE:
                 this.mesh.material.color = new THREE.Color().setHex(0x00cc11);;
@@ -57,8 +57,11 @@ class Tree {
         const time = new Date().getTime();
         switch (this.state) {
             case CONSTANTS.STATES.FIRE:
-                this.mesh.position.y += Math.sin(time* 0.03) * 0.008;
+                this.mesh.position.y += Math.sin(time* 0.04) * 0.01;
                 break;
+                case CONSTANTS.STATES.DANGER:
+                    this.mesh.position.y += Math.sin(time* 0.01) * 0.01;
+                    break;
             default:
                 break;
         }

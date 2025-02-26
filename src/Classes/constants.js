@@ -2,6 +2,7 @@
 
 const CONSTANTS= {
     SIZE_MESH:4,
+    MESH_SPACNG: 0.3,
 
     STATES:{
         SAFE: 0,

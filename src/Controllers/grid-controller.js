@@ -32,62 +32,8 @@ class GridController {
         this.percentChanceFire = fireProbability;
     }
 
-
-    setNeighboursOnFire(cell){
-        var change = false
-        KERNEL.forEach((k) => {
-            const newPosition = {x: cell.x + k.x, y: cell.y + k.y}
-            // is the new position still in the grid?
-            if(newPosition.x >=0  && newPosition.x < this.width && newPosition.y >=0  && newPosition.y < this.height) {
-                // an ashe cell won't catch fire again
-                if(this.grid[newPosition.x][newPosition.y].state != CONSTANTS.STATES.ASHES) {
-                    // randomized check
-                    if (randomHelper.isTakingFire(this.percentChanceFire)) {
-                        this.grid[newPosition.x][newPosition.y].setState(CONSTANTS.STATES.FIRE)
-                        change = true;
-                    }
-                }
-            }
-        });
-        return change;
-    }
-
-    // computes the fire propagation
-    // returns whether the grid has seen a new fire cell (if there is no new fire, the sim is finished)
-    computeNextStep(){
-
-        const treeInDanger = this.grid.reduce((acc, current_line) => {
-            acc.push(...current_line.filter(tree => tree.state == CONSTANTS.STATES.DANGER));
-            return acc;
-        }, [])
-
-        treeInDanger.forEach((t) => {
-            t.setState(CONSTANTS.STATES.SAFE)
-        })
-
-
-        // get every tree on fire
-        var treesOnFire = this.grid.reduce((acc, current_line) => {
-            acc.push(...current_line.filter(tree => tree.state == CONSTANTS.STATES.FIRE));
-            return acc;
-        }, [])
-
-        var newFire = false;
-        treesOnFire.forEach((t) => {
-            t.setState(CONSTANTS.STATES.ASHES)
-            // compute every neighbour that the fire can propagate to
-            var neighbourChanged = this.setNeighboursOnFire(t);
-            if(neighbourChanged) newFire = true;
-        })
-
-        // reset trees on fire
-
-        treesOnFire = this.grid.reduce((acc, current_line) => {
-            acc.push(...current_line.filter(tree => tree.state == CONSTANTS.STATES.FIRE));
-            return acc;
-        }, [])
-
-        // mark trees that might catch fire on the next iteration
+    // from a list of trees on fire, mark trees that might catch fire on the next iteration
+    markNeighbouringTrees(treesOnFire){
         treesOnFire.forEach((t) => {
             KERNEL.forEach((k) => {
                 const newPosition = {x: t.x + k.x, y: t.y + k.y}
@@ -99,33 +45,72 @@ class GridController {
                 }
             });
         })
+    }
+    // computes the fire propagation
+    // returns whether the grid has seen a new fire cell (if there is no new fire, the sim is finished)
+    computeNextStep(){
+
+        // get every tree on fire
+        var treesOnFire = this.grid.reduce((acc, current_line) => {
+            acc.push(...current_line.filter(tree => tree.state == CONSTANTS.STATES.FIRE));
+            return acc;
+        }, [])
+        // trees on fire end up in ashes...
+        treesOnFire.forEach((t) => {
+            t.setState(CONSTANTS.STATES.ASHES)
+        })
+
+        // get every tree in danger (computed during the previous iteration)
+        const treesInDanger = this.grid.reduce((acc, current_line) => {
+            acc.push(...current_line.filter(tree => tree.state == CONSTANTS.STATES.DANGER));
+            return acc;
+        }, [])
+
+        // if no tree is in danger, then no tree can catch fire, end simulation
+        if(treesInDanger.length == 0) return false;
+
+        // reset trees on fire
+        treesOnFire = []
+        treesInDanger.forEach((t) => {
+            // randomized chance of taking fire
+            if(randomHelper.isTakingFire(this.percentChanceFire)){
+                t.setState(CONSTANTS.STATES.FIRE);
+                // if newly on fire, mark it in the new array
+                treesOnFire.push(t);
+            }
+            else t.setState(CONSTANTS.STATES.SAFE)
+        })
+        // compute next trees in danger
+        this.markNeighbouringTrees(treesOnFire);
     
-        return newFire;
+        return true;
     }
 
+    // from a list of trees indices, set their corresponding cells on fire and mark their neighbours as in danger
     setupInitalFires(treesOnFire) {
         treesOnFire.forEach((t) =>
         {
             if(t.x <= this.width && t.y <= this.height && t.x > 0 && t.y > 0){
-                this.grid[t.x-1][t.y-1].setState(CONSTANTS.STATES.FIRE);
+                this.grid[t.x][t.y].setState(CONSTANTS.STATES.FIRE);
             }
-        })
+        });
+        this.markNeighbouringTrees(treesOnFire);
     }
 
+    // resets the grid as a blank, completely safe grid 
     reset(){
         for (let index = 0; index < this.height; index++) {
             for (let index2 = 0; index2 < this.width; index2++) {
                 this.grid[index][index2].setState(CONSTANTS.STATES.SAFE);
-                
             }
         }
     }
 
+    // computes the little wiggly animations of every cell in the grid
     animate(){
         for (let index = 0; index < this.height; index++) {
             for (let index2 = 0; index2 < this.width; index2++) {
                 this.grid[index][index2].animate();
-                
             }
         }
     }
